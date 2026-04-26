@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>System Update Required</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  position:fixed;
+  top:0; left:0;
+  background:#000;
+  font-family:'Courier New', monospace;
+  color:#00ff41;
+  touch-action:none;
+  user-select:none;
+}
+
+/* ══ SCREENS ══ */
+.screen {
+  position:fixed;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+}
+.screen.show { display:flex; }
+
+/* ════════════════════════
+   SCREEN 1 — FAKE ALERT
+════════════════════════ */
+#s1 {
+  background:#fff;
+  padding:28px 22px;
+  gap:12px;
+}
+.s1-bar {
+  width:100%;
+  background:#f1f3f4;
+  border-radius:24px;
+  padding:9px 14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+.s1-bar span { font-family:-apple-system,sans-serif; font-size:0.72rem; color:#444; }
+.s1-icon { font-size:4rem; animation:wiggle 0.6s infinite; }
+@keyframes wiggle {
+  0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)}
+}
+.s1-title {
+  font-family:-apple-system,sans-serif;
+  font-size:1.35rem; font-weight:800;
+  color:#cc0000; text-align:center;
+}
+.s1-body {
+  font-family:-apple-system,sans-serif;
+  font-size:0.83rem; color:#333;
+  text-align:center; line-height:1.65;
+}
+.s1-body b { color:#cc0000; }
+.s1-btn {
+  width:100%; padding:15px;
+  background:#cc0000; color:#fff;
+  border:none; border-radius:12px;
+  font-size:1rem; font-weight:700;
+  font-family:-apple-system,sans-serif;
+  cursor:pointer;
+  animation:redpulse 1s infinite;
+}
+@keyframes redpulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(204,0,0,0.5)}
+  50%{box-shadow:0 0 0 10px rgba(204,0,0,0)}
+}
+.s1-skip {
+  font-family:-apple-system,sans-serif;
+  font-size:0.8rem; color:#aaa; cursor:pointer;
+  text-decoration:underline; margin-top:4px;
+}
+
+/* ════════════════════════
+   SCREEN 2 — HACKING
+════════════════════════ */
+#s2 {
+  background:#000;
+  justify-content:flex-start;
+  padding:0;
+}
+canvas#rain {
+  position:fixed; inset:0; z-index:0; opacity:0.13; pointer-events:none;
+}
+.hack-wrap {
+  position:relative; z-index:5;
+  width:100%; height:100%;
+  display:flex; flex-direction:column;
+  padding:14px 14px 20px;
+}
+.hack-topbar {
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid rgba(0,255,65,0.2);
+  padding-bottom:10px; margin-bottom:10px;
+}
+.hack-topbar .htitle { font-size:0.6rem; letter-spacing:0.2em; color:#00ff41; }
+#timer {
+  font-size:1rem; font-weight:bold; color:#ff2222;
+  border:1px solid #ff2222;
+  padding:3px 12px;
+  background:rgba(255,34,34,0.1);
+  letter-spacing:0.1em;
+  animation:redglow 1s infinite;
+}
+@keyframes redglow {
+  0%,100%{box-shadow:0 0 4px #ff2222} 50%{box-shadow:0 0 14px #ff2222}
+}
+
+/* Progress bars */
+.progs { margin-bottom:10px; display:flex; flex-direction:column; gap:7px; }
+.prow {}
+.plabel {
+  display:flex; justify-content:space-between;
+  margin-bottom:3px;
+}
+.plabel span { font-size:0.55rem; color:rgba(0,255,65,0.7); letter-spacing:0.08em; }
+.pbar { height:5px; background:rgba(0,255,65,0.08); border-radius:2px; overflow:hidden; }
+.pfill {
+  height:100%; width:0%; border-radius:2px;
+  transition:width 0.5s linear;
+}
+.pfill.g { background:#00ff41; box-shadow:0 0 6px #00ff41; }
+.pfill.r { background:#ff2222; box-shadow:0 0 6px #ff2222; }
+.pfill.y { background:#ffe000; box-shadow:0 0 6px #ffe000; }
+
+/* Data cards */
+.cards {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:6px; margin-bottom:10px;
+}
+.card {
+  background:rgba(0,255,65,0.03);
+  border:1px solid rgba(0,255,65,0.15);
+  padding:7px 9px;
+}
+.clabel { font-size:0.48rem; color:rgba(0,255,65,0.45); letter-spacing:0.12em; margin-bottom:3px; }
+.cval { font-size:0.72rem; color:#fff; font-weight:bold; }
+.cval.red { color:#ff2222; }
+
+/* Log scroll */
+.logbox {
+  flex:1;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  gap:1px;
+  margin-bottom:8px;
+  min-height:0;
+}
+.lg {
+  font-size:0.59rem;
+  line-height:1.75;
+  color:#00ff41;
+  animation:lgfade 0.15s ease forwards;
+}
+.lg.r { color:#ff2222; }
+.lg.y { color:#ffe000; }
+.lg.w { color:#fff; font-weight:bold; }
+@keyframes lgfade { from{opacity:0} to{opacity:1} }
+
+.warnbar {
+  text-align:center;
+  border-top:1px solid rgba(255,34,34,0.3);
+  padding-top:8px;
+  font-size:0.65rem; color:#ff2222;
+  letter-spacing:0.1em;
+  animation:blink2 0.8s infinite;
+}
+@keyframes blink2 { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ════════════════════════
+   SCREEN 3 — HACKED
+════════════════════════ */
+#s3 {
+  background:#000;
+  flex-direction:column;
+  gap:18px;
+  padding:40px 28px;
+  text-align:center;
+}
+.hacked-text {
+  font-size:4.5rem;
+  font-weight:900;
+  color:#ff2222;
+  letter-spacing:0.12em;
+  line-height:1;
+  animation:glitch 0.4s infinite;
+  text-shadow:0 0 30px #ff2222;
+}
+@keyframes glitch {
+  0%,100%{text-shadow:0 0 30px #ff2222; transform:none}
+  20%{text-shadow:-3px 0 #00ffee, 3px 0 #ff2222; transform:skewX(-2deg)}
+  40%{text-shadow:3px 0 #ff2222, -3px 0 #00ffee; transform:skewX(2deg)}
+  60%{text-shadow:0 0 30px #ff2222; transform:none}
+}
+.hacked-sub {
+  color:rgba(255,34,34,0.7);
+  font-size:0.8rem;
+  letter-spacing:0.15em;
+  line-height:1.8;
+}
+.hacked-data {
+  background:rgba(255,34,34,0.07);
+  border:1px solid rgba(255,34,34,0.3);
+  padding:14px 18px;
+  font-size:0.65rem;
+  color:rgba(255,255,255,0.7);
+  line-height:2;
+  text-align:left;
+  width:100%;
+}
+.hacked-data b { color:#ff2222; }
+
+/* ════════════════════════
+   SCREEN 4 — PRANK REVEAL
+════════════════════════ */
+#s4 {
+  background:linear-gradient(135deg,#0d0020,#000820);
+  flex-direction:column;
+  gap:14px;
+  padding:44px 28px;
+  text-align:center;
+}
+.confbox { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+.cpiece {
+  position:absolute; top:-12px;
+  border-radius:3px;
+  animation:cfall linear forwards;
+}
+@keyframes cfall {
+  to { transform:translateY(110vh) rotate(800deg); opacity:0; }
+}
+.s4-content { position:relative; z-index:5; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.big-emoji { font-size:5rem; animation:bounce 0.5s ease; }
+@keyframes bounce {
+  0%{transform:scale(0)} 60%{transform:scale(1.3)} 100%{transform:scale(1)}
+}
+.s4-title {
+  font-family:-apple-system,sans-serif;
+  font-size:2.2rem; font-weight:900;
+  color:#fff; line-height:1.2;
+}
+.s4-sub {
+  font-family:-apple-system,sans-serif;
+  font-size:1rem; color:rgba(255,255,255,0.6);
+  line-height:1.6;
+}
+.s4-fine {
+  font-family:-apple-system,sans-serif;
+  font-size:0.75rem; color:rgba(255,255,255,0.3);
+  margin-top:6px; line-height:1.6;
+}
+.s4-share {
+  margin-top:8px; padding:15px 36px;
+  background:linear-gradient(135deg,#9b5de5,#f72585);
+  color:#fff; border:none; border-radius:100px;
+  font-size:1rem; font-weight:700;
+  font-family:-apple-system,sans-serif;
+  cursor:pointer;
+  box-shadow:0 6px 24px rgba(155,93,229,0.4);
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1 ══ -->
+<div class="screen show" id="s1">
+  <div class="s1-bar">
+    <span>🔒</span>
+    <span>security.google.com/device-scan</span>
+  </div>
+  <div class="s1-icon">🛡️</div>
+  <div class="s1-title">⚠️ Virus Detected!</div>
+  <div class="s1-body">
+    Google Security found <b>4 dangerous threats</b> on your device.<br><br>
+    Your <b>photos, contacts & passwords</b> are being stolen <b>RIGHT NOW.</b><br><br>
+    Tap the button below to stop the attack immediately.
+  </div>
+  <button class="s1-btn" id="startBtn">🔍 STOP ATTACK NOW</button>
+  <span class="s1-skip" id="skipBtn">Ignore warning (dangerous)</span>
+</div>
+
+<!-- ══ SCREEN 2 ══ -->
+<div class="screen" id="s2">
+  <canvas id="rain"></canvas>
+  <div class="hack-wrap">
+    <div class="hack-topbar">
+      <span class="htitle">[ DEEP SCAN ACTIVE ]</span>
+      <div id="timer">03:00</div>
+    </div>
+
+    <div class="progs">
+      <div class="prow">
+        <div class="plabel"><span>📱 CONTACTS STOLEN</span><span id="pp1">0%</span></div>
+        <div class="pbar"><div class="pfill r" id="pb1"></div></div>
+      </div>
+      <div class="prow">
+        <div class="plabel"><span>📸 PHOTOS UPLOADED</span><span id="pp2">0%</span></div>
+        <div class="pbar"><div class="pfill r" id="pb2"></div></div>
+      </div>
+      <div class="prow">
+        <div class="plabel"><span>💬 MESSAGES LEAKED</span><span id="pp3">0%</span></div>
+        <div class="pbar"><div class="pfill y" id="pb3"></div></div>
+      </div>
+      <div class="prow">
+        <div class="plabel"><span>🔑 PASSWORDS CRACKED</span><span id="pp4">0%</span></div>
+        <div class="pbar"><div class="pfill g" id="pb4"></div></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="clabel">YOUR IP</div><div class="cval" id="cip">...</div></div>
+      <div class="card"><div class="clabel">LOCATION</div><div class="cval" id="cloc">...</div></div>
+      <div class="card"><div class="clabel">FILES STOLEN</div><div class="cval red" id="cfiles">0</div></div>
+      <div class="card"><div class="clabel">THREAT</div><div class="cval red" id="cthreat">LOW</div></div>
+    </div>
+
+    <div class="logbox" id="logbox"></div>
+
+    <div class="warnbar">⚠ DO NOT CLOSE — SCAN IN PROGRESS ⚠</div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3 — HACKED ══ -->
+<div class="screen" id="s3">
+  <div class="hacked-text">HACKED</div>
+  <div class="hacked-sub">
+    YOUR DEVICE HAS BEEN<br>FULLY COMPROMISED
+  </div>
+  <div class="hacked-data">
+    <b>✓ Contacts:</b> 312 stolen<br>
+    <b>✓ Photos:</b> 2,847 uploaded<br>
+    <b>✓ Messages:</b> All leaked<br>
+    <b>✓ Passwords:</b> 8 cracked<br>
+    <b>✓ Location:</b> Tracked & saved<br>
+    <b>✓ Camera:</b> Accessed remotely
+  </div>
+  <div style="font-size:0.6rem;color:rgba(255,34,34,0.5);letter-spacing:0.12em;">
+    TRANSFERRING DATA TO REMOTE SERVER...
+  </div>
+</div>
+
+<!-- ══ SCREEN 4 — REVEAL ══ -->
+<div class="screen" id="s4">
+  <div class="confbox" id="confbox"></div>
+  <div class="s4-content">
+    <div class="big-emoji">😂</div>
+    <div class="s4-title">YOU GOT PRANKED!!</div>
+    <div class="s4-sub">Bro thought he got hacked 💀💀<br>Your phone is 100% fine 😂</div>
+    <div style="font-size:3rem">🤣🤣🤣</div>
+    <div class="s4-fine">Nothing was stolen. No virus. No hacker.<br>Just your friend being evil 😈</div>
+    <button class="s4-share" onclick="shareNow()">😈 Prank someone else</button>
+  </div>
+</div>
+
+<script>
+// ══ BLOCK ALL EXIT ATTEMPTS ══
+(function blockExit() {
+  // Push multiple states so back button has many layers
+  for (let i = 0; i < 50; i++) history.pushState(null, '', location.href);
+  window.addEventListener('popstate', () => {
+    for (let i = 0; i < 50; i++) history.pushState(null, '', location.href);
+  });
+  // Block context menu
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  // Block keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (['F5','F12','Escape'].includes(e.key) || (e.ctrlKey && ['r','w','t','l'].includes(e.key))) {
+      e.preventDefault();
+    }
+  });
+  // Block pull-to-refresh
+  document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+})();
+
+// ══ MATRIX RAIN ══
+const cv = document.getElementById('rain');
+const cx = cv.getContext('2d');
+cv.width = window.innerWidth;
+cv.height = window.innerHeight;
+const cols = Math.floor(cv.width / 13);
+const drops = Array(cols).fill(1);
+const ch = '01アBCDEF#$@!?%&*ウエオカキ'.split('');
+function rain() {
+  cx.fillStyle = 'rgba(0,0,0,0.06)';
+  cx.fillRect(0, 0, cv.width, cv.height);
+  cx.fillStyle = '#00ff41';
+  cx.font = '12px monospace';
+  drops.forEach((y, i) => {
+    cx.fillText(ch[Math.floor(Math.random() * ch.length)], i * 13, y * 13);
+    if (y * 13 > cv.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+setInterval(rain, 45);
+
+// ══ SHOW/HIDE SCREENS ══
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+// ══ FAKE DATA ══
+const cities = ['Mumbai','Delhi','Bangalore','Chennai','Hyderabad','Kolkata'];
+function fakeIP() {
+  return `${192}.${168}.${rand(0,255)}.${rand(1,254)}`;
+}
+function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+// ══ SMOOTH PROGRESS (no freeze) ══
+function smoothProg(barId, pctId, targetPct, durationMs) {
+  const bar = document.getElementById(barId);
+  const pct = document.getElementById(pctId);
+  let cur = 0;
+  const interval = 80;
+  const steps = durationMs / interval;
+  const inc = targetPct / steps;
+  const iv = setInterval(() => {
+    cur = Math.min(cur + inc, targetPct);
+    bar.style.width = cur.toFixed(1) + '%';
+    pct.textContent = Math.round(cur) + '%';
+    if (cur >= targetPct) clearInterval(iv);
+  }, interval);
+}
+
+// ══ LOG LINES ══
+const logLines = [
+  ['Initiating deep scan...', ''],
+  ['Bypassing firewall... SUCCESS', 'r'],
+  ['Reading contacts database...', 'r'],
+  ['Extracted 312 contacts ✓', 'r'],
+  ['Scanning /DCIM/Photos...', ''],
+  ['Found 2,847 photos — uploading...', 'r'],
+  ['Decrypting WhatsApp backup...', 'y'],
+  ['Breaking password hash...', 'y'],
+  ['GPS location acquired ✓', 'r'],
+  ['Accessing browser saved passwords...', 'r'],
+  ['Found 8 saved passwords ✓', 'w'],
+  ['Injecting root payload...', 'r'],
+  ['Root access GRANTED ✓', 'w'],
+  ['Mirroring screen — ACTIVE', 'y'],
+  ['Disabling device antivirus...', 'r'],
+  ['Uploading to remote server...', ''],
+  ['Transfer: 4.7 MB/s', ''],
+  ['Camera accessed remotely ✓', 'r'],
+  ['All data backup complete ✓', 'w'],
+  ['Device fully compromised.', 'r'],
+];
+let logIdx = 0;
+function addLog() {
+  if (logIdx >= logLines.length) return;
+  const [txt, cls] = logLines[logIdx++];
+  const box = document.getElementById('logbox');
+  const d = document.createElement('div');
+  d.className = 'lg ' + cls;
+  d.textContent = '> ' + txt;
+  box.appendChild(d);
+  while (box.children.length > 9) box.removeChild(box.firstChild);
+}
+
+// ══ FILES COUNTER ══
+function animFiles(totalMs) {
+  const end = Date.now() + totalMs;
+  let n = 0;
+  const iv = setInterval(() => {
+    n += rand(20, 80);
+    if (Date.now() >= end) { clearInterval(iv); return; }
+    document.getElementById('cfiles').textContent = n.toLocaleString();
+  }, 400);
+}
+
+// ══ THREAT ESCALATE ══
+const threats = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', '☠ CRITICAL'];
+let tIdx = 0;
+function escalate() {
+  const el = document.getElementById('cthreat');
+  if (tIdx < threats.length) el.textContent = threats[tIdx++];
+}
+
+// ══ TIMER ══
+let secs = 180;
+let timerIv = null;
+function startTimer() {
+  timerIv = setInterval(() => {
+    secs--;
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = m + ':' + s;
+    if (secs <= 0) {
+      clearInterval(timerIv);
+      showHacked();
+    }
+  }, 1000);
+}
+
+// ══ START HACK ══
+function startHack() {
+  show('s2');
+
+  // Fullscreen attempt
+  const el = document.documentElement;
+  try {
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch(e) {}
+
+  // Fake IP & city
+  setTimeout(() => {
+    document.getElementById('cip').textContent = fakeIP();
+    document.getElementById('cloc').textContent = cities[rand(0, cities.length - 1)];
+  }, 1200);
+
+  // Progress bars — spread across 3 mins, NO freeze
+  setTimeout(() => smoothProg('pb1', 'pp1', 100, 50000), 1000);
+  setTimeout(() => smoothProg('pb2', 'pp2', 100, 60000), 3000);
+  setTimeout(() => smoothProg('pb3', 'pp3', 88, 70000), 8000);
+  setTimeout(() => smoothProg('pb4', 'pp4', 72, 80000), 15000);
+
+  // Files
+  animFiles(175000);
+
+  // Logs every 8s
+  addLog();
+  setInterval(addLog, 8000);
+
+  // Threat every 35s
+  setInterval(escalate, 35000);
+
+  // Start timer
+  startTimer();
+}
+
+// ══ HACKED SCREEN ══
+function showHacked() {
+  show('s3');
+  // Show prank after 4 seconds
+  setTimeout(showPrank, 4000);
+}
+
+// ══ PRANK REVEAL ══
+function showPrank() {
+  show('s4');
+  spawnConfetti();
+  try { document.exitFullscreen(); } catch(e) {}
+}
+
+// ══ CONFETTI ══
+function spawnConfetti() {
+  const colors = ['#f72585','#9b5de5','#4cc9f0','#ffd60a','#00ff41','#ff6b6b','#fff'];
+  const box = document.getElementById('confbox');
+  for (let i = 0; i < 100; i++) {
+    const p = document.createElement('div');
+    p.className = 'cpiece';
+    const size = rand(6, 12);
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${size}px; height:${size}px;
+      background:${colors[rand(0, colors.length-1)]};
+      animation-duration:${2 + Math.random()*3}s;
+      animation-delay:${Math.random()*1.5}s;
+    `;
+    box.appendChild(p);
+  }
+}
+
+// ══ SHARE ══
+function shareNow() {
+  const url = location.href;
+  if (navigator.share) {
+    navigator.share({ title: '⚠️ Urgent Security Alert!', text: 'Open this immediately!!', url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => alert('Link copied! Send to your friend 😈'));
+  }
+}
+
+// ══ BUTTON EVENTS ══
+document.getElementById('startBtn').addEventListener('click', startHack);
+document.getElementById('skipBtn').addEventListener('click', startHack);
+</script>
+</body>
+</html>
